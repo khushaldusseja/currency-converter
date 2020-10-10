@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="utf-8" />
+<link rel="shortcut icon" href="%PUBLIC_URL%/images/favicon.ico"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Currency Converter Web App</title>
+<meta name="description" content="Parrot Analytics"/>
+<meta name="keywords" content="Parrot Analytics"/>
+<meta property="og:type" content="Web app">
+<meta property="og:url" content="">
+<meta property="og:title" content="Front End Test"/>
+<meta property="og:image" content=""/>
+<meta property="og:site_name" content="Web App"/>
+<meta property="og:description" content="Front End Test"/>
+
+<link rel="apple-touch-icon" href="%PUBLIC_URL%/images/favicon.ico" />
+
+<!-- For adding PWA feature-->
+<link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+
+<link rel="stylesheet" href="./css/bootstrap.min.css" /> 
+
+<script src="./config/env.default.js"></script>
+<% if (process.env.NODE_ENV !== 'development') { %>
+<script src="./config/env.js"></script>
+<% } %>
+<script src="./config/applyConfig.js"></script>
+
+</head>
+<body>
+<noscript>You need to enable JavaScript to run this app.</noscript>
+
+<div id="root" >
+</div>
+<script src="./vendor/jquery.min.js"></script>
+<script src="./vendor/bootstrap.min.js"></script>
+</body>
+
+</html>
