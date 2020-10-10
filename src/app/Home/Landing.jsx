@@ -3,18 +3,17 @@ import { withLocalize } from "react-localize-redux"
 import { withRouter } from 'react-router-dom'
 import DataTable from 'react-data-table-component'
 
-
 class Landing extends Component {
 
     constructor(props) {
 		super(props);
 
+		// initilize state objects
 		this.state = {
 			baseCurrency:'SEK',
-			convertToCurrency: 'USD',
+			convertToCurrencyUSD: 'USD',
 			convertToCurrencyGBP: 'GBP',
 			convertToCurrencySGD: 'SGD',
-			convertToCurrencyOthers: 'AUD',
 			baseAmount: 200,
 			rates: [],
 			currencies: [],
@@ -23,35 +22,43 @@ class Landing extends Component {
 			// table state objects..
 			tableTextMessage:'Fetching Historic Data',
 			rowsPerPage: 10,
-			sortBy: "id",
+			sortBy: "date",
 			sortOrder: "desc",
-			totalJobs: 0,
 		};
 		
+		//bind all app function methids.
 		this.callExchangeRateAPI = this.callExchangeRateAPI.bind(this);
+		this.callExchangeRateHistoricAPI = this.callExchangeRateHistoricAPI.bind(this);
+
 		this.changeBaseCurrency = this.changeBaseCurrency.bind(this);
 		this.changeConvertToCurrency = this.changeConvertToCurrency.bind(this);
 		this.changeBaseAmount = this.changeBaseAmount.bind(this);
 		this.currencyFormatter = this.currencyFormatter.bind(this);
     } 
 
+	//lifecycle method when component is first loaded each time
     componentDidMount(){
 		this.callExchangeRateAPI(this.state.baseCurrency)
 		this.callExchangeRateHistoricAPI(this.state.baseCurrency);
 	}
 
+	// method to change the base currency
 	changeBaseCurrency(e) {
-		this.setState({ baseCurrency: e.target.value});
-		this.callExchangeRateAPI(e.target.value)
+		this.setState({
+			baseCurrency: e.target.value
+		}, () => {
+			this.callExchangeRateAPI(this.state.baseCurrency);
+			this.callExchangeRateHistoricAPI(this.state.baseCurrency);
+		});
 	}
 
+	//currency converter method..
 	changeConvertToCurrency(e, convertCurrency) {
-		console.log('Inside changeConvertToCurrency ', e.target.value)
 		
 		switch(convertCurrency) {
 			case 'USD':
 				this.setState({
-					convertToCurrency: e.target.value,
+					convertToCurrencyUSD: e.target.value,
 				}, () => {
 					this.callExchangeRateHistoricAPI(this.state.baseCurrency);
 				});
@@ -87,10 +94,12 @@ class Landing extends Component {
 	   });
 	}
 	  
+	// currency formatter method.. Returning after type conversions with three fractions after decimals...
 	currencyFormatter(baseAmount, selectedCurrency, rates) {
 		return Number.parseFloat(baseAmount * rates[selectedCurrency]).toFixed(3);
 	}
 	
+	// fetch call to get currencies and their rates..
 	callExchangeRateAPI(base) {
 		const api = `https://api.exchangeratesapi.io/latest?base=${base}`;
 		
@@ -106,28 +115,40 @@ class Landing extends Component {
 			);
 	}
 	  
-	  callExchangeRateHistoricAPI(base) {
+	// method to get the historic data of currencies exchange rates..
+	callExchangeRateHistoricAPI(base) {
+	
+		const { convertToCurrencyUSD, convertToCurrencyGBP, convertToCurrencySGD } = this.state;
 		
-		const { convertToCurrency, convertToCurrencyGBP, convertToCurrencySGD, convertToCurrencyOthers } = this.state;
+		// TO-DO: read these values from date-picker ui component
 		const startDate = '2015-03-26';
 		const endDate = '2017-06-13';
-		const symbols = `${convertToCurrency},${convertToCurrencyGBP},${convertToCurrencySGD},${convertToCurrencyOthers}`;
+		const symbols = `${convertToCurrencyUSD},${convertToCurrencyGBP},${convertToCurrencySGD}`;
 		const api = `https://api.exchangeratesapi.io/history?base=${base}&symbols=${symbols}&start_at=${startDate}&end_at=${endDate}`;
 		
 		fetch(api)
 			.then(results => {
 				return results.json();
 			}).then(data => {
+
+				// logic to form the final array as source of data for injection to data table component
+				let keysArray = Object.keys(data['rates']);
+				let currencies = Object.values(data['rates']);
+				
+				currencies.map((data, i) => {
+					return data['date']= keysArray[i];
+				});
+
 				this.setState({
-					historicData: Object.values(data['rates']),
-				})
+					historicData: currencies,
+				});
 			}
-			);
+		);
 	}
 
     render() {
 
-	const { currencies, rates, baseCurrency, baseAmount, convertToCurrency, convertToCurrencyGBP, convertToCurrencySGD, convertToCurrencyOthers, historicData, rowsPerPage, totalrecords, tableTextMessage} = this.state;
+	const { currencies, rates, baseCurrency, baseAmount, convertToCurrencyUSD, convertToCurrencyGBP, convertToCurrencySGD, historicData, rowsPerPage, totalrecords, tableTextMessage} = this.state;
     
     const currencyChoice = currencies.map(currency =>
       <option key={currency} value={currency}> {currency} </option>      
@@ -140,14 +161,21 @@ class Landing extends Component {
 		</h3>
 	);
 	
+	// user intercaction curreny input form..
 	const currencyForm = (
-		<div className="form-container">
+		<div>
 			<form>
 				<div className='container'>
-					<div className='row'>
-						<div className='col-sm-6 p-0 mt-3'>
-							<h4>Currency I have</h4>
-							<div>{baseCurrency}</div>
+
+					<div className='row mb-3'>
+						<div className='col-sm-6 pt-3 mt-3 white-bg'>
+							<h4>Convert From</h4>
+							<div>Base Currency</div>
+							<input type='number'
+								defaultValue={baseAmount} 
+								onChange={this.changeBaseAmount}
+								className='mr-3'>
+							</input>  
 							<select value={baseCurrency}
 									onChange={this.changeBaseCurrency}>
 									{currencyChoice}
@@ -155,68 +183,40 @@ class Landing extends Component {
 							</select>
 						</div>
 						
-						<div className='col-sm-6 p-0 mt-3'>
+						<div className='col-sm-6 pt-3 mt-3 white-bg'>
 							<div className=''>
-								<h4>Currency I want</h4>
+								<h4>Convert To</h4>
 
-								<div className='d-flex justify-content-between'>
-									<div className=''>
-										<div>{convertToCurrency}</div>
-										<select value={convertToCurrency}
+								<div className='d-flex justify-content-between pb-3'>
+									<div className='mr-3'>
+										<div>Currency 1</div>
+										<select value={convertToCurrencyUSD}
 												onChange={(e) => this.changeConvertToCurrency(e, 'USD')}>
 												{currencyChoice}
 										</select>
-										{/* <input type='text' defaultValue={convertToCurrency} /></input> */}
+										<div className='currenct-font-size font-weight-bold mt-2'>{this.currencyFormatter(baseAmount, convertToCurrencyUSD, rates)} {convertToCurrencyUSD}</div>
 									</div>
 
-									<div className=''>
-										<div>{convertToCurrencyGBP}</div>
+									<div className='mr-3'>
+										<div>Currency 2</div>
 										<select value={convertToCurrencyGBP}
 												onChange={(e) => this.changeConvertToCurrency(e, 'GBP')}>
 												{currencyChoice}
 										</select>
+										<div className='currenct-font-size font-weight-bold mt-2'>{this.currencyFormatter(baseAmount, convertToCurrencyGBP, rates)} {convertToCurrencyGBP}</div>
 									</div>
 									
-									<div className=''>
-										<div>{convertToCurrencySGD}</div>
+									<div className='mr-3'>
+										<div>Currency 3</div>
 										<select value={convertToCurrencySGD}
 												onChange={(e) => this.changeConvertToCurrency(e, 'SGD')}>
 												{currencyChoice}
 										</select>
+										<div className='currenct-font-size font-weight-bold mt-2'>{this.currencyFormatter(baseAmount, convertToCurrencySGD, rates)} {convertToCurrencySGD}</div>
 									</div>
-
-									<div className=''>
-										<div>{convertToCurrencyOthers}</div>
-										<select  
-											value={convertToCurrencyOthers}
-											onChange={(e) => this.changeConvertToCurrency(e, 'OTHERS')}>
-											{currencyChoice}
-										</select>
-									</div>
-
 								</div>
 							</div>
 						</div>
-					</div>
-						
-					<div className='row mt-4'>
-						<h3>Amount:</h3>
-						<input type='number'
-								defaultValue={baseAmount} 
-								onChange={this.changeBaseAmount}>
-						</input>  
-					</div>
-
-					<div className='row mt-4'>
-						<div className='font-weight-bold font-italic'>
-							{baseAmount} {baseCurrency} is equal to:
-							<ul>
-								<li>{this.currencyFormatter(baseAmount, convertToCurrency, rates)} {convertToCurrency}</li>
-								<li>{this.currencyFormatter(baseAmount, convertToCurrencyGBP, rates)} {convertToCurrencyGBP}</li>
-								<li>{this.currencyFormatter(baseAmount, convertToCurrencySGD, rates)} {convertToCurrencySGD}</li>
-								<li>{this.currencyFormatter(baseAmount, convertToCurrencyOthers, rates)} {convertToCurrencyOthers}</li>
-							</ul>
-						</div> 
 					</div>
 					
 				</div>
@@ -232,9 +232,9 @@ class Landing extends Component {
             sortable: true,
 		},
 		{
-            name: `${convertToCurrency}`,
-            selector: `${convertToCurrency}`,
-            sortable: true,
+            name: `${convertToCurrencyUSD}`,
+            selector: `${convertToCurrencyUSD}`,
+			sortable: true,
 		},
 		{
             name: `${convertToCurrencyGBP}`,
@@ -245,27 +245,20 @@ class Landing extends Component {
             name: `${convertToCurrencySGD}`,
             selector: `${convertToCurrencySGD}`,
             sortable: true,
-		},
-		{
-            name: `${convertToCurrencyOthers}`,
-            selector: `${convertToCurrencyOthers}`,
-            sortable: true,
-        },
+		}
 	]
 
+	// tablular data component
 	const historicDataView = (
 		<DataTable
-			title="Historic Data"
+			title="Historic Data between March 26th, 2015 and June 13th, 2017"
 			columns={columns}
 			data={historicData}
 			pagination={true}
 			paginationPerPage={rowsPerPage}
 			paginationRowsPerPageOptions= {[5,10, 20, 30, 50, 100]}
 			paginationTotalRows={totalrecords}
-			onChangePage={this.onChangePage}
-			onChangeRowsPerPage={this.onChangeRowsPerPage}
 			noDataComponent={tableTextMessage}
-			onSort={this.onSort}
 			highlightOnHover
 			className='mt-3'
 		/>

@@ -1,7 +1,6 @@
 
 body {
   margin: 0;
- 
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: #f5f5f5;
@@ -16,10 +15,32 @@ html {
 	overflow-x: hidden;
 }
 
+input{
+  height: 2.1875rem;
+}
+
 select{
   height: 2.1875rem;
+  width: 150px;
 }
 
 .rdt_Pagination{
   margin-bottom: 5rem;
+}
+
+.rdt_TableHeader{
+  background: transparent !important;
+  text-align: center;
+}
+
+.rdt_Table .rdt_TableCol, .rdt_Table .rdt_TableCell{
+  font-size: 14px;
+}
+
+.white-bg{
+  background: #fff;
+}
+
+.currenct-font-size{
+  font-size: 1.2rem;
 }

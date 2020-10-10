@@ -5,7 +5,7 @@ import Loader from '../Layout/Loader';
 import { PropTypes } from 'prop-types';
 
 
-// Dynamically loaded components
+// Dynamically loaded components with lazy routing..
 const Landing = React.lazy(() => import('../Home/Landing.jsx'));
 
 const DefaultRoot = ({ component: Component, path, exact, withHeader, withSidebar, activeItem, ...rest }) => {
@@ -39,6 +39,7 @@ const getRoutes = props => {
             <BrowserRouter basename={process.env.PUBLIC_URL}>
                 <Switch>                    
                     <DefaultRoot component={Landing} exact={true} path='/' withHeader= {false} withSidebar= {false} activeItem=''/>
+                    {/* add more routes here.. */}
                 </Switch>
             </BrowserRouter>
         </Suspense>
