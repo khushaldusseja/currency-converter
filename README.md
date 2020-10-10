@@ -5,16 +5,16 @@ Currency Converter Web Application.
 
 ## Available Scripts
 
+## Run Steps:
+```
+npm install
+npm run start
+```
+
 ## Build Steps:
 ```
 npm run build
 ```
-
-## Run Steps:
-```
-npm run start
-```
-
 ## Contacts:
 1. Base currency selection for conversion.
 2. Pre populated three currencies - USD, GBP, SGD.
