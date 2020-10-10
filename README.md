@@ -15,7 +15,8 @@ npm run start
 ```
 npm run build
 ```
-## Contacts:
+
+## Features:
 1. Base currency selection for conversion.
 2. Pre populated three currencies - USD, GBP, SGD.
 3. Selection for any other currency conversion.
