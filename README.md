@@ -22,7 +22,7 @@ npm run start
 4. Historic data view on pre selected dates for all four currency types.
 4. Currency data persistence on page reloads.
 
-##TO-DO:
+## TO-DO:
 1. Implement date picker and read date values based on user selection from date picker.
 2. Add new type for currency by clicking on 'Add new currency' button.
 3. Implement chart visualization feature for historic data.
